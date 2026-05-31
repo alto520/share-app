@@ -5,8 +5,36 @@ export default function TunnelGuide() {
   const [os, setOs] = useState<"win" | "mac">("win");
   const [copied, setCopied] = useState<string | null>(null);
 
-  const copyText = (text: string, id: string) => {
-    navigator.clipboard.writeText(text);
+  const copyText = async (text: string, id: string) => {
+    let copySuccess = false;
+    if (navigator.clipboard) {
+      try {
+        await navigator.clipboard.writeText(text);
+        copySuccess = true;
+      } catch (err) {
+        console.warn("navigator.clipboard fails inside guide, trying fallback...", err);
+      }
+    }
+
+    if (!copySuccess) {
+      // Robust textarea copy fallback
+      const textArea = document.createElement("textarea");
+      textArea.value = text;
+      textArea.style.position = "fixed";
+      textArea.style.left = "-999999px";
+      textArea.style.top = "-999999px";
+      document.body.appendChild(textArea);
+      textArea.focus();
+      textArea.select();
+      try {
+        const successful = document.execCommand("copy");
+        copySuccess = successful;
+      } catch (err) {
+        console.error("Fallback copy failed inside guide:", err);
+      }
+      document.body.removeChild(textArea);
+    }
+
     setCopied(id);
     setTimeout(() => setCopied(null), 2000);
   };
@@ -14,52 +42,64 @@ export default function TunnelGuide() {
   const steps = {
     win: [
       {
-        title: "① 安装组件依赖 (解决 'tsx' 报错)",
-        desc: "解压 ZIP 安装包后，首先在文件夹路径打开 PowerShell 终端。您遇到的错误是因为没有先拉取项目依赖包。运行下方命令，它将会下载所有必要的运行环境 (包括 tsx 等运行工具) 👇",
+        title: "⚡ 【推荐】双击一键运行 (极速简便)",
+        desc: "在项目根目录中，双击运行【一键启动_Windows.bat】。它会自动检查您的依赖情况，自动执行 npm install 获取环境依赖，并开启 3000 本地服务。后续每次直接双击它即可，无需再手动打开 PowerShell！",
+        cmd: "一键启动_Windows.bat",
+        lang: "Batch Script"
+      },
+      {
+        title: "① 手动安装组件依赖 (解决 'tsx' 报错)",
+        desc: "如果您习惯手动操作：解压 ZIP 后，首先在文件夹路径打开 PowerShell。您遇到的错误是因为没有下载依赖环境。请先在这个窗口运行以下命令拉取环境 👇",
         cmd: "npm install",
         lang: "PowerShell"
       },
       {
-        title: "② 启动本地后台服务",
-        desc: "依赖安装完毕后，再次在 PowerShell 运行下方命令。这将在您的本机 3000 端口启动具有高速图床能力的服务器 👇",
+        title: "② 手动启动本地大图服务",
+        desc: "依赖安装完毕后，在同一个 PowerShell 中运行下方命令。这将在您的本机 3000 端口启动高速图床服务器 👇",
         cmd: "npm run dev",
         lang: "PowerShell"
       },
       {
         title: "③ 安装 Cloudflare 免费穿透客户端",
-        desc: "如果您本地没有 cloudflared 客户端，可以在 PowerShell 运行此包管理命令进行全局免密秒装 👇",
+        desc: "如果您电脑中还没有 cloudflared，可以直接在 PowerShell 运行此微软推荐的包管理工具一键配置 👇",
         cmd: "winget install Cloudflare.cloudflared",
         lang: "PowerShell"
       },
       {
-        title: "④ 建立零费用极速公网安全通道",
-        desc: "安装完成后，开启一个新的 PowerShell 终端窗口并运行此穿透命令。这将会自动建立高强度加密的长连通道”，并分配一个对客公网链接 (类似 xxxx.trycloudflare.com) 👇",
+        title: "④ 快速打通并建立公网安全长连通道",
+        desc: "建立完毕后，开启另一个新的 PowerShell 终端并运行穿透。这将会自动建立高强度专线，并分配一个直接秒开的外网安全链接 👇",
         cmd: "cloudflared tunnel --url http://localhost:3000",
         lang: "PowerShell"
       }
     ],
     mac: [
       {
-        title: "① 安装组件依赖 (解决 'tsx' 报错)",
-        desc: "在解压后的项目根目录下打开 终端 (Terminal)。必须先安装依赖才能正常跑起整个服务。直接复制并回车 👇",
+        title: "⚡ 【推荐】双击一键运行 (需要一次性授权)",
+        desc: "我们为您封装了【一键启动_macOS.command】。首次双击若遇到『无法执行/没有适当权限』提示，请见下方【macOS 权限解锁提示】解锁。随后即可直接双击自动装载依赖、一键拉起服务！",
+        cmd: "双击：一键启动_macOS.command",
+        lang: "Shell Script"
+      },
+      {
+        title: "① 手动安装组件依赖 (解决 'tsx' 报错)",
+        desc: "在解压后的项目根目录下打开 终端 (Terminal)。必须先装载核心依赖才能工作。复制并回车 👇",
         cmd: "npm install",
         lang: "Bash"
       },
       {
-        title: "② 启动本地后台服务",
-        desc: "依赖获取完成后，通过下方命令，于您的 Mac 本地 3000 端口挂载多线程原图服务 👇",
+        title: "② 手动启动本地大图服务",
+        desc: "由于原图采用多线程和高速切片，依赖安装后，运行下方命令挂载 3000 本机服务 👇",
         cmd: "npm run dev",
         lang: "Bash"
       },
       {
-        title: "③ 在 macOS 安装 Cloudflared 客端",
-        desc: "请确保已经安装 Homebrew 终端工具，然后在 Mac 键盘上拷贝此命令并安装 👇",
+        title: "③ 在 macOS 安装 Cloudflared 穿透客户端",
+        desc: "确保您的 Mac 安装了 Homebrew 包管理终端，然后在您的 Terminal 输入此命令安装 👇",
         cmd: "brew install cloudflare/cloudflare/cloudflared",
         lang: "Bash"
       },
       {
-        title: "④ 快速打通外网通道",
-        desc: "在您的 Terminal 内运行以下通道挂载命令，无需单独购买昂贵的服务器或公网IP 即可建立高速专线 👇",
+        title: "④ 极速开启对客免流量传输通道",
+        desc: "大功告成！直接在 Terminal 内运行以下端口映射通道，无需购置昂贵域名和服务器，完美建立安全公网保障 👇",
         cmd: "cloudflared tunnel --url http://localhost:3000",
         lang: "Bash"
       }
@@ -154,6 +194,34 @@ export default function TunnelGuide() {
           </div>
         ))}
       </div>
+
+      {os === "mac" && (
+        <div className="bg-[#12141a] border border-gray-900 rounded-xl p-4 space-y-2.5 animate-fadeIn">
+          <div className="flex items-center gap-1.5 font-bold text-amber-500 text-xs">
+            <Shield size={14} className="text-amber-500" />
+            <span>🔐 macOS 权限解锁提示 (首次双击打不开的解决方法)</span>
+          </div>
+          <p className="text-[11px] text-gray-300 leading-relaxed font-light">
+            macOS 安全规定任何下载的 <code className="font-mono text-amber-200">.command</code> 脚本文件在双击运行时必须授权执行权限。如果双击时提示 <b>「文件由于没有适当的访问权限而无法执行」</b>，请执行以下简易修复命令：
+          </p>
+          <ol className="list-decimal pl-5 text-[11px] text-gray-400 space-y-1">
+            <li>在项目解压文件夹中右键 — 开启 <b>终端 (Terminal)</b> 窗口；</li>
+            <li>拷贝并运行下方这行极速授权口令，即可永久开启双击速起功能：</li>
+          </ol>
+          <div className="relative mt-2">
+            <div className="w-full bg-gray-950 px-3.5 py-2.5 rounded-lg border border-gray-800 font-mono text-[11px] text-amber-300 overflow-x-auto whitespace-nowrap pr-12 select-all">
+              chmod +x 一键启动_macOS.command
+            </div>
+            <button
+              onClick={() => copyText("chmod +x 一键启动_macOS.command", "chmod-cap")}
+              className="absolute right-2.5 top-1/2 -translate-y-1/2 p-1.5 rounded-md bg-[#12141a] hover:bg-gray-900 border border-gray-800 text-gray-400 hover:text-white transition-all cursor-pointer"
+              title="复制解锁代码"
+            >
+              {copied === "chmod-cap" ? <Check size={12} className="text-emerald-400" /> : <Copy size={12} />}
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Cloudflare Result Explanation */}
       <div className="bg-indigo-500/10 border border-indigo-500/20 p-4 rounded-xl space-y-1.5">

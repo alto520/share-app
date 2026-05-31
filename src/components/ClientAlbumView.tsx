@@ -456,7 +456,8 @@ export default function ClientAlbumView({ albumId }: ClientAlbumViewProps) {
                         className="object-cover w-full h-full transform group-hover:scale-105 transition-all duration-500 ease-out"
                         onError={(e) => {
                           const img = e.currentTarget;
-                          img.src = "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='100' height='100' viewBox='0 0 100 100'><rect width='100%25' height='100%25' fill='%23111216'/><text x='50%25' y='50%25' text-anchor='middle' alignment-baseline='middle' fill='%23f3f4f6' font-size='10'>Photo Preview</text></svg>";
+                          img.onerror = null; // Detach error handler to prevent infinite loop
+                          img.src = "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"; // Clean transparent fallback
                         }}
                       />
                       <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent p-4 flex justify-between items-end opacity-0 group-hover:opacity-100 transition-opacity duration-300">

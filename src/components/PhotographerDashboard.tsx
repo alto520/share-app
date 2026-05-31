@@ -62,8 +62,13 @@ export default function PhotographerDashboard({ onPreviewAlbum }: PhotographerDa
 
   useEffect(() => {
     fetchDashboardData();
-    // Pre-fill default domain field with current host
-    setCustomTunnelDomain(window.location.origin);
+    // Pre-fill with cached tunnel domain, or fallback to current page host origin
+    const cached = localStorage.getItem("customTunnelDomain");
+    if (cached) {
+      setCustomTunnelDomain(cached);
+    } else {
+      setCustomTunnelDomain(window.location.origin);
+    }
   }, []);
 
   const handleCreateAlbum = async (e: React.FormEvent) => {
@@ -213,11 +218,40 @@ export default function PhotographerDashboard({ onPreviewAlbum }: PhotographerDa
     }
   };
 
-  const handleCopyLink = (albumId: string) => {
+  const handleCopyLink = async (albumId: string) => {
     // Trim backslash
     const base = customTunnelDomain.endsWith("/") ? customTunnelDomain.slice(0, -1) : customTunnelDomain;
     const link = `${base}?album=${albumId}`;
-    navigator.clipboard.writeText(link);
+    
+    let copySuccess = false;
+    if (navigator.clipboard) {
+      try {
+        await navigator.clipboard.writeText(link);
+        copySuccess = true;
+      } catch (err) {
+        console.warn("navigator.clipboard fails, trying fallback...", err);
+      }
+    }
+
+    if (!copySuccess) {
+      // Fallback copy using hidden textarea (supported in non-secure HTTP Contexts)
+      const textArea = document.createElement("textarea");
+      textArea.value = link;
+      textArea.style.position = "fixed";
+      textArea.style.left = "-999999px";
+      textArea.style.top = "-999999px";
+      document.body.appendChild(textArea);
+      textArea.focus();
+      textArea.select();
+      try {
+        const successful = document.execCommand("copy");
+        copySuccess = successful;
+      } catch (err) {
+        console.error("Fallback copy failed:", err);
+      }
+      document.body.removeChild(textArea);
+    }
+
     setCopiedLink(albumId);
     setTimeout(() => setCopiedLink(null), 2000);
   };
@@ -391,7 +425,11 @@ export default function PhotographerDashboard({ onPreviewAlbum }: PhotographerDa
                   <input
                     type="url"
                     value={customTunnelDomain}
-                    onChange={(e) => setCustomTunnelDomain(e.target.value)}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      setCustomTunnelDomain(val);
+                      localStorage.setItem("customTunnelDomain", val);
+                    }}
                     placeholder="https://your-custom-subdomain.trycloudflare.com"
                     className="w-full md:w-96 px-3.5 py-2.5 bg-gray-950 border border-gray-800 rounded-xl focus:outline-none focus:border-amber-500 text-xs font-mono text-white text-center md:text-left"
                   />
