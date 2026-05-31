@@ -1,0 +1,6 @@
+{
+  "name": "Aperture Share",
+  "description": "极简高级的摄影师无损相册管理、内网穿透分享与批量下载系统",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
