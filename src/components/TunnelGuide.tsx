@@ -1,9 +1,8 @@
 import React, { useState } from "react";
-import { Terminal, Copy, Check, Info, Shield, Zap } from "lucide-react";
-import { motion } from "motion/react";
+import { Terminal, Copy, Check, Info, Shield, Zap, Laptop, Monitor, AlertCircle, RefreshCw } from "lucide-react";
 
 export default function TunnelGuide() {
-  const [os, setOs] = useState<"mac" | "win" | "linux">("mac");
+  const [os, setOs] = useState<"win" | "mac">("win");
   const [copied, setCopied] = useState<string | null>(null);
 
   const copyText = (text: string, id: string) => {
@@ -12,120 +11,164 @@ export default function TunnelGuide() {
     setTimeout(() => setCopied(null), 2000);
   };
 
-  const commands = {
-    mac: {
-      install: "brew install cloudflare/cloudflare/cloudflared",
-      run: "cloudflared tunnel --url http://localhost:3000",
-    },
-    win: {
-      install: "winget install Cloudflare.cloudflared",
-      run: "cloudflared.exe tunnel --url http://localhost:3000",
-    },
-    linux: {
-      install: "curl -L https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64 -o cloudflared && chmod +x cloudflared",
-      run: "./cloudflared tunnel --url http://localhost:3000",
-    },
+  const steps = {
+    win: [
+      {
+        title: "① 安装组件依赖 (解决 'tsx' 报错)",
+        desc: "解压 ZIP 安装包后，首先在文件夹路径打开 PowerShell 终端。您遇到的错误是因为没有先拉取项目依赖包。运行下方命令，它将会下载所有必要的运行环境 (包括 tsx 等运行工具) 👇",
+        cmd: "npm install",
+        lang: "PowerShell"
+      },
+      {
+        title: "② 启动本地后台服务",
+        desc: "依赖安装完毕后，再次在 PowerShell 运行下方命令。这将在您的本机 3000 端口启动具有高速图床能力的服务器 👇",
+        cmd: "npm run dev",
+        lang: "PowerShell"
+      },
+      {
+        title: "③ 安装 Cloudflare 免费穿透客户端",
+        desc: "如果您本地没有 cloudflared 客户端，可以在 PowerShell 运行此包管理命令进行全局免密秒装 👇",
+        cmd: "winget install Cloudflare.cloudflared",
+        lang: "PowerShell"
+      },
+      {
+        title: "④ 建立零费用极速公网安全通道",
+        desc: "安装完成后，开启一个新的 PowerShell 终端窗口并运行此穿透命令。这将会自动建立高强度加密的长连通道”，并分配一个对客公网链接 (类似 xxxx.trycloudflare.com) 👇",
+        cmd: "cloudflared tunnel --url http://localhost:3000",
+        lang: "PowerShell"
+      }
+    ],
+    mac: [
+      {
+        title: "① 安装组件依赖 (解决 'tsx' 报错)",
+        desc: "在解压后的项目根目录下打开 终端 (Terminal)。必须先安装依赖才能正常跑起整个服务。直接复制并回车 👇",
+        cmd: "npm install",
+        lang: "Bash"
+      },
+      {
+        title: "② 启动本地后台服务",
+        desc: "依赖获取完成后，通过下方命令，于您的 Mac 本地 3000 端口挂载多线程原图服务 👇",
+        cmd: "npm run dev",
+        lang: "Bash"
+      },
+      {
+        title: "③ 在 macOS 安装 Cloudflared 客端",
+        desc: "请确保已经安装 Homebrew 终端工具，然后在 Mac 键盘上拷贝此命令并安装 👇",
+        cmd: "brew install cloudflare/cloudflare/cloudflared",
+        lang: "Bash"
+      },
+      {
+        title: "④ 快速打通外网通道",
+        desc: "在您的 Terminal 内运行以下通道挂载命令，无需单独购买昂贵的服务器或公网IP 即可建立高速专线 👇",
+        cmd: "cloudflared tunnel --url http://localhost:3000",
+        lang: "Bash"
+      }
+    ]
   };
 
   return (
-    <div id="tunnel-guide-container" className="bg-[#12141a]/90 backdrop-blur-md rounded-2xl border border-gray-800/80 p-6 shadow-xl">
-      <div className="flex items-center gap-3 mb-4">
-        <div className="p-2 bg-amber-500/10 text-amber-500 rounded-lg">
-          <Terminal size={22} id="terminal-guide-icon" />
+    <div id="tunnel-guide-container" className="bg-[#111216] border border-gray-900 rounded-2xl p-6 space-y-6">
+      
+      {/* Visual Header */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-gray-800">
+        <div className="flex items-center gap-3">
+          <div className="p-2.5 bg-amber-500/10 text-amber-500 rounded-xl shrink-0">
+            <Terminal size={22} id="terminal-guide-icon" />
+          </div>
+          <div>
+            <h3 className="font-bold text-base text-white flex items-center gap-2">
+              本地一键部署与 Cloudflare Tunnel 指南
+            </h3>
+            <p className="text-xs text-gray-400">
+              专为非公网环境打造的服务跑通指引。帮助您在 Windows 或 macOS 电脑中快速启动并完美链接世界上任一手机微信访客。
+            </p>
+          </div>
         </div>
-        <div>
-          <h3 className="font-semibold text-lg text-white">Cloudflare Tunnel 内网穿透配置指引</h3>
-          <p className="text-xs text-gray-400">零费用、零配置、无公网IP，安全稳定发布您的相册</p>
-        </div>
-      </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-        <div className="bg-[#161a22] p-4 rounded-xl border border-gray-800/40">
-          <div className="flex items-center gap-2 mb-2 text-amber-500 font-medium text-sm">
-            <Zap size={15} /> 1. 原理简述
-          </div>
-          <p className="text-xs leading-relaxed text-gray-400">
-            在您的本地服务器上运行本程序，通过 Cloudflare 免费隧道代理，将本地的 <b>3000</b> 端口加密映射至公网。
-          </p>
-        </div>
-        <div className="bg-[#161a22] p-4 rounded-xl border border-gray-800/40">
-          <div className="flex items-center gap-2 mb-2 text-indigo-400 font-medium text-sm">
-            <Shield size={15} /> 2. 极致安全
-          </div>
-          <p className="text-xs leading-relaxed text-gray-400">
-            不用暴露家庭或工作室IP，防止DDoS攻击。所有到相册和原图下载的请求均经过高级SSL证书加密。
-          </p>
-        </div>
-        <div className="bg-[#161a22] p-4 rounded-xl border border-gray-800/40">
-          <div className="flex items-center gap-2 mb-2 text-emerald-400 font-medium text-sm">
-            <Info size={15} /> 3. 客户无感
-          </div>
-          <p className="text-xs leading-relaxed text-gray-400">
-            您的客户<b>无需安装任何VPN或软件</b>，直接双击您发送的私密链接，即可通过浏览器极速预览、批量下载。
-          </p>
-        </div>
-      </div>
-
-      {/* OS Selector Tabs */}
-      <div className="flex gap-2 border-b border-gray-800/60 pb-3 mb-4">
-        {(["mac", "win", "linux"] as const).map((item) => (
+        {/* OS Selectors */}
+        <div className="flex bg-gray-950 p-1 rounded-xl border border-gray-800 self-start md:self-center">
           <button
-            key={item}
-            onClick={() => setOs(item)}
-            className={`px-4 py-2 text-xs font-semibold rounded-lg transition-all ${
-              os === item
-                ? "bg-amber-500/10 text-amber-500 border border-amber-500/20"
+            onClick={() => setOs("win")}
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold cursor-pointer transition-all ${
+              os === "win"
+                ? "bg-[#1d212a] text-amber-400 border border-amber-500/15"
                 : "text-gray-400 hover:text-white"
             }`}
           >
-            {item === "mac" && "macOS (Homebrew)"}
-            {item === "win" && "Windows"}
-            {item === "linux" && "Linux / Ubuntu"}
+            <Monitor size={14} />
+            <span>Windows 指南 (PowerShell)</span>
           </button>
+          <button
+            onClick={() => setOs("mac")}
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold cursor-pointer transition-all ${
+              os === "mac"
+                ? "bg-[#1d212a] text-amber-400 border border-amber-500/15"
+                : "text-gray-400 hover:text-white"
+            }`}
+          >
+            <Laptop size={14} />
+            <span>macOS 指南 (Terminal)</span>
+          </button>
+        </div>
+      </div>
+
+      {/* Warning Resolution Tip */}
+      <div className="bg-amber-500/10 border border-amber-500/20 rounded-xl p-4 flex gap-3">
+        <AlertCircle className="text-amber-400 shrink-0 mt-0.5" size={16} />
+        <div className="space-y-1">
+          <h4 className="text-xs font-bold text-amber-300">💡 为什么会出现 'tsx is not recognized' / '无法识别 tsx' 报错？</h4>
+          <p className="text-[11px] text-gray-300 leading-relaxed font-light">
+            这是因为解压 ZIP 源码后，您当前的文件路径中还没有下载 node modules 核心依赖包。这是正常的！请必须在运行 <b>npm run dev</b> 之前，<b>先在终端运行一次 <code>npm install</code></b> 即可完美解决该问题！
+          </p>
+        </div>
+      </div>
+
+      {/* Guide Steps Layout - Side by Side or Vertical? Let's use responsive bento flex list */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {steps[os].map((step, index) => (
+          <div key={index} className="bg-gray-950/60 p-4 rounded-xl border border-gray-900 flex flex-col justify-between space-y-3 hover:border-amber-500/20 transition-all">
+            <div className="space-y-1.5">
+              <div className="text-xs font-bold text-gray-200 flex items-center justify-between">
+                <span>{step.title}</span>
+                <span className="text-[9px] uppercase tracking-wider text-gray-500 bg-gray-950 px-1.5 py-0.5 rounded border border-gray-900 font-mono">
+                  {step.lang}
+                </span>
+              </div>
+              <p className="text-[11px] text-gray-400 leading-relaxed font-light">
+                {step.desc}
+              </p>
+            </div>
+
+            <div className="relative mt-2">
+              <div className="w-full bg-[#12141a] px-3.5 py-2.5 rounded-lg border border-gray-800 font-mono text-[11px] text-amber-400/95 overflow-x-auto whitespace-nowrap pr-12 select-all">
+                {step.cmd}
+              </div>
+              <button
+                onClick={() => copyText(step.cmd, `${os}-${index}`)}
+                className="absolute right-2.5 top-1/2 -translate-y-1/2 p-1.5 rounded-md bg-gray-950 hover:bg-gray-900 border border-gray-800 text-gray-400 hover:text-white transition-all cursor-pointer"
+                title="复制命令"
+              >
+                {copied === `${os}-${index}` ? <Check size={12} className="text-emerald-400" /> : <Copy size={12} />}
+              </button>
+            </div>
+          </div>
         ))}
       </div>
 
-      <div className="space-y-4">
-        {/* Step 1 Command */}
-        <div>
-          <div className="flex justify-between items-center mb-1.5">
-            <span className="text-xs font-medium text-gray-300">步骤一：安装 Cloudflared 客户端</span>
-          </div>
-          <div className="flex items-center bg-gray-950 px-4 py-3 rounded-xl border border-gray-800 font-mono text-xs text-amber-400/90 relative group">
-            <span className="truncate select-all">{commands[os].install}</span>
-            <button
-              onClick={() => copyText(commands[os].install, "install")}
-              className="absolute right-3 top-1/2 -translate-y-1/2 p-1.5 rounded bg-gray-900 border border-gray-800 text-gray-400 hover:text-white transition-all cursor-pointer opacity-80 hover:opacity-100"
-            >
-              {copied === "install" ? <Check size={14} className="text-emerald-500" /> : <Copy size={14} />}
-            </button>
-          </div>
+      {/* Cloudflare Result Explanation */}
+      <div className="bg-indigo-500/10 border border-indigo-500/20 p-4 rounded-xl space-y-1.5">
+        <div className="flex items-center gap-1.5 font-bold text-indigo-300 text-xs">
+          <Shield size={14} />
+          <span>完美对客流程提示：</span>
         </div>
-
-        {/* Step 2 Command */}
-        <div>
-          <div className="flex justify-between items-center mb-1.5">
-            <span className="text-xs font-medium text-gray-300">步骤二：启动免登录临时隧道 (极其简便)</span>
-            <span className="text-[10px] text-gray-500 font-mono">绑定本地 3000 端口</span>
-          </div>
-          <div className="flex items-center bg-gray-950 px-4 py-3 rounded-xl border border-gray-800 font-mono text-xs text-emerald-400/90 relative group">
-            <span className="truncate select-all">{commands[os].run}</span>
-            <button
-              onClick={() => copyText(commands[os].run, "run")}
-              className="absolute right-3 top-1/2 -translate-y-1/2 p-1.5 rounded bg-gray-900 border border-gray-800 text-gray-400 hover:text-white transition-all cursor-pointer opacity-80 hover:opacity-100"
-            >
-              {copied === "run" ? <Check size={14} className="text-emerald-500" /> : <Copy size={14} />}
-            </button>
-          </div>
-        </div>
-      </div>
-
-      <div className="mt-4 flex items-start gap-2 bg-blue-950/10 border border-blue-900/20 rounded-xl p-3">
-        <Info size={14} className="text-blue-400 shrink-0 mt-0.5" />
-        <p className="text-[11px] text-gray-400 leading-relaxed">
-          <b>提示</b>：启动隧道后，终端中会显示一个类似 <code className="text-blue-300 px-1 py-0.5 bg-gray-900/60 rounded">https://xxxx.trycloudflare.com</code> 的随机域名。这个域名就是您的专属传输总线地址。如果您是租用固定域名，亦可绑定固定 CNAME。在下方相册中，配置该域名即可直接生成一键分享链接！
+        <p className="text-[11px] text-gray-300 leading-relaxed font-light">
+          当步骤 ④ 的穿透命令在您的电脑跑起后，您的终端屏幕上会飞快滚动日志，请从中找到形如 <b><code>https://xxxx.trycloudflare.com</code></b> 的临时安全公网链接。
+        </p>
+        <p className="text-[11px] text-gray-300 leading-relaxed font-light">
+          现在，把这个 <b>trycloudflare 网址</b> 复制，填入页面上的 <b>“快速链接生成基准域名”</b>，接着生成的每一张分享卡就会通过微信秒级打开，尽享极速、无阻碍与真正的原地交付！
         </p>
       </div>
+
     </div>
   );
 }
